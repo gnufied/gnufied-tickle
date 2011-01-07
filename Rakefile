@@ -15,8 +15,8 @@ Jeweler::Tasks.new do |gem|
   gem.name = "tickle"
   gem.homepage = "http://github.com/gnufied/tickle"
   gem.license = "MIT"
-  gem.summary = %Q{TODO: one-line summary of your gem}
-  gem.description = %Q{TODO: longer description of your gem}
+  gem.summary = %Q{Run your tests parallely}
+  gem.description = %Q{Run your tests parallely}
   gem.email = "hkumar@crri.co.in"
   gem.authors = ["Hemant Kumar"]
   # Include your dependencies below. Runtime dependencies are required when using your gem,
@@ -29,13 +29,6 @@ Jeweler::RubygemsDotOrgTasks.new
 require 'rake/testtask'
 Rake::TestTask.new(:test) do |test|
   test.libs << 'lib' << 'test'
-  test.pattern = 'test/**/test_*.rb'
-  test.verbose = true
-end
-
-require 'rcov/rcovtask'
-Rcov::RcovTask.new do |test|
-  test.libs << 'test'
   test.pattern = 'test/**/test_*.rb'
   test.verbose = true
 end
