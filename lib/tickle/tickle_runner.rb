@@ -5,11 +5,10 @@ module Tickle
       puts "Loading Rails.."
       ENV["RAILS_ENV"] = "test"
       Object.const_set :RAILS_ENV, "test"
-      require(File.join(Rails.root, "config", "boot"))
       require(File.join(Rails.root, 'config', 'environment'))
       $: << "#{Rails.root}/test"
       $: << "#{Rails.root}/test/test_helpers"
-      require File.join(Rails.root, "test", "test_helper")
+      require File.join(Rails.root,"test","test_helper")
       @loaded = true
     end
 
@@ -88,8 +87,13 @@ module Tickle
         migrate_db()
         return true
       rescue Exception => e
-        puts "Error runnig miration #{e.inspect}"
-        puts e.backtrace
+        puts e.message
+        return false
+      rescue StandardError 
+        puts $!.message
+        return false
+      rescue Mysql2::Error
+        puts $!.message
         return false
       end
     end
@@ -100,10 +104,11 @@ module Tickle
     end
 
     def create_db_using_raw_sql(db_counter)
-      test_config = get_connection_config(db_counter)
-      sql_connection = Mysql2::Client.new(test_config.symbolize_keys!)
-      sql_connection.query("DROP DATABASE IF EXISTS #{test_config[:database]}")
-      sql_connection.query("CREATE DATABASE #{test_config[:database]}")
+      test_config = config['test']
+      sql_connection = Mysql2::Client.new(test_config.symbolize_keys)
+      db_config = get_connection_config(db_counter)
+      sql_connection.query("DROP DATABASE IF EXISTS #{db_config['database']}")
+      sql_connection.query("CREATE DATABASE #{db_config['database']}")
       sql_connection.close()
     end
 
@@ -114,7 +119,7 @@ module Tickle
 
     def get_connection_config(db_counter)
       default_settings = config["test"].clone()
-      default_settings[:database] = "#{default_settings[:database]}_#{db_counter}"
+      default_settings['database'] = "#{default_settings['database']}_#{db_counter}"
       default_settings
     end
 
