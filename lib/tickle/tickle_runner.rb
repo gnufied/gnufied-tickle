@@ -1,15 +1,13 @@
 module Tickle
   class << self
-    def load_environment
-      return if @loaded
+    def load_environment(env_name)
       puts "Loading Rails.."
-      ENV["RAILS_ENV"] = "test"
-      Object.const_set :RAILS_ENV, "test"
+      ENV["RAILS_ENV"] = env_name
+      Rails.env = env_name
       require(File.join(Rails.root, 'config', 'environment'))
       $: << "#{Rails.root}/test"
       $: << "#{Rails.root}/test/test_helpers"
       require File.join(Rails.root,"test","test_helper")
-      @loaded = true
     end
 
     def run_redis_test(size = 3)

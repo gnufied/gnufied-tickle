@@ -30,7 +30,7 @@ namespace :tickle do
   
   desc "Run redis tests"
   task :redis_test, :count do |t,args|
-    Tickle.load_environment
+    Tickle.load_environment('test')
     size = args[:count] ? args[:count].to_i : 3
     puts "Running tests using #{size} processes"
     Tickle.run_redis_test(size)
@@ -38,7 +38,7 @@ namespace :tickle do
   
   desc "Run cucumber parallel test"
   task :cucumber, :count do |t,args|
-    Tickle.load_environment
+    Tickle.load_environment('cucumber')
     size = args[:count] ? args[:count].to_i : 3
     puts "Running Cucumber tests using #{size} processes"
     puts "Using the default profile..."
