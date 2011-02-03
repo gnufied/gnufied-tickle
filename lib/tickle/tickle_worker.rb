@@ -1,5 +1,5 @@
 module Tickle
-  class Worker
+  class Worker < EM::Connection
     include EM::P::ObjectProtocol
     def receive_object(ruby_object)
       case ruby_object
@@ -12,8 +12,18 @@ module Tickle
       end
     end
 
+    def connection_completed
+      send_object(WorkerConnected.new(self.signature))
+    end
+
+    def unbind
+      EM.add_timer(3) {
+        reconnect(Tickle::Config.ip,Tickle::Config.port)
+      }
+    end
+
     def update_code
-      source_control = Tickle::Git.new()
+      source_control = Tickle::Git.new(:branch => "master")
       revision = source_control.latest_revision
       source_control.update(revision)
     end
@@ -31,11 +41,15 @@ module Tickle
     end
   end
 
-  class TestRunner
+  class TestRunner < EM::Connection
     attr_accessor :worker
     include EM::P::ObjectProtocol
     def receive_data(data)
-      worker.send_object(data)
+      worker.send_object(BuildOutput.new(data))
+    end
+
+    def unbind
+      worker.send_object(BuildStatus.new(get_status.exitstatus))
     end
   end
 end

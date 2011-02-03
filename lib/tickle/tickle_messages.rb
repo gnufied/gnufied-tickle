@@ -13,6 +13,13 @@ module Tickle
     def initialize(data); @data = data; end
   end
 
+  class WorkerConnected
+    attr_accessor :name
+    def initialize(name); @name = name; end
+  end
+
+  class BuildRequester; end
+
   class BuildStatus
     attr_accessor :exit_status
     def initialize(exit_status)

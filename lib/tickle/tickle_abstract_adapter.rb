@@ -43,6 +43,15 @@ module Tickle
       STDERR.sync = true
     end
 
+    def redirect_stdout
+      STDOUT.sync = true
+      begin
+        STDERR.reopen STDOUT;
+      rescue ::Exception;
+      end
+      STDERR.sync = true
+    end
+
     def try_migration_first(db_counter)
       begin
         db_config = get_connection_config(db_counter)

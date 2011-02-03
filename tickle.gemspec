@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Hemant Kumar"]
-  s.date = %q{2011-01-07}
+  s.date = %q{2011-02-03}
   s.description = %q{Run your tests parallely}
   s.email = %q{hkumar@crri.co.in}
   s.extra_rdoc_files = [
@@ -26,10 +26,20 @@ Gem::Specification.new do |s|
     "VERSION",
     "lib/tickle.rb",
     "lib/tickle/railtie.rb",
+    "lib/tickle/tickle_abstract_adapter.rb",
+    "lib/tickle/tickle_config.rb",
+    "lib/tickle/tickle_cucumber.rb",
+    "lib/tickle/tickle_git.rb",
+    "lib/tickle/tickle_messages.rb",
+    "lib/tickle/tickle_requestor.rb",
     "lib/tickle/tickle_runner.rb",
+    "lib/tickle/tickle_server.rb",
     "lib/tickle/tickle_tasks.rake",
+    "lib/tickle/tickle_test_unit.rb",
+    "lib/tickle/tickle_worker.rb",
     "test/helper.rb",
-    "test/test_tickle.rb"
+    "test/test_tickle.rb",
+    "tickle.gemspec"
   ]
   s.homepage = %q{http://github.com/gnufied/tickle}
   s.licenses = ["MIT"]
@@ -46,13 +56,19 @@ Gem::Specification.new do |s|
     s.specification_version = 3
 
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
+      s.add_runtime_dependency(%q<eventmachine>, [">= 0"])
+      s.add_runtime_dependency(%q<redis>, [">= 0"])
       s.add_development_dependency(%q<bundler>, ["~> 1.0.0"])
       s.add_development_dependency(%q<jeweler>, ["~> 1.5.2"])
     else
+      s.add_dependency(%q<eventmachine>, [">= 0"])
+      s.add_dependency(%q<redis>, [">= 0"])
       s.add_dependency(%q<bundler>, ["~> 1.0.0"])
       s.add_dependency(%q<jeweler>, ["~> 1.5.2"])
     end
   else
+    s.add_dependency(%q<eventmachine>, [">= 0"])
+    s.add_dependency(%q<redis>, [">= 0"])
     s.add_dependency(%q<bundler>, ["~> 1.0.0"])
     s.add_dependency(%q<jeweler>, ["~> 1.5.2"])
   end

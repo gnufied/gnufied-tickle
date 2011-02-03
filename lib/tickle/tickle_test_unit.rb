@@ -3,11 +3,13 @@ module Tickle
     include AbstractAdapter
     
     def run(size = 2)
+      redirect_stdout()
+      load_environment('test')
       pids = []
       size.times do |index|
         pids << Process.fork do
           prepare_databse(index) unless try_migration_first(index)
-          r = Redis.new(Tickle::Config.redis_ip,Tickle::Config.redis_port)
+          r = Redis.new(:host => Tickle::Config.redis_ip,:port => Tickle::Config.redis_port)
           while (filename = r.rpop('tests'))
             load(filename) unless filename =~ /^-/
           end
@@ -21,7 +23,7 @@ module Tickle
 
     def add_to_redis
       test_files = Dir["#{Rails.root}/test/unit/**/**_test.rb"] + Dir["#{Rails.root}/test/functional/**/**_test.rb"]
-      redis = Redis.new(Tickle::Config.redis_ip,Tickle::Config.redis_port)
+      redis = Redis.new(:host => Tickle::Config.redis_ip,:port => Tickle::Config.redis_port)
       redis.del 'tests'
       test_files.each { |x| redis.rpush('tests', x) }
     end
