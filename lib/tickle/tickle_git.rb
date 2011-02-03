@@ -1,3 +1,5 @@
+#Yanked from CruiseControl.rb, shamelessly
+
 module Tickle
 
   class Git
