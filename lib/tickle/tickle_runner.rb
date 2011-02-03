@@ -50,6 +50,7 @@ module Tickle
       GC.start
       feature_groups.each_with_index do |group, db_counter|
         pids << Process.fork do
+          redirect_io("#{Rails.root}/log/cucumber_run.log")
           prepare_databse(db_counter) unless try_migration_first(db_counter)
           args = %w(--format progress) + group
           failure = Cucumber::Cli::Main.execute(args)
@@ -75,6 +76,27 @@ module Tickle
       end
 
       pids
+    end
+
+    # Free file descriptors and
+    # point them somewhere sensible
+    # STDOUT/STDERR should go to a logfile
+    def redirect_io(logfile_name)
+      begin; STDIN.reopen "/dev/null"; rescue ::Exception; end
+
+      if logfile_name
+        begin
+          STDOUT.reopen logfile_name, "a"
+          STDOUT.sync = true
+        rescue ::Exception
+          begin; STDOUT.reopen "/dev/null"; rescue ::Exception; end
+        end
+      else
+        begin; STDOUT.reopen "/dev/null"; rescue ::Exception; end
+      end
+
+      begin; STDERR.reopen STDOUT; rescue ::Exception; end
+      STDERR.sync = true
     end
 
     def try_migration_first(db_counter)
