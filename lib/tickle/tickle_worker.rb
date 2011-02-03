@@ -13,7 +13,9 @@ module Tickle
     end
 
     def update_code
-      
+      source_control = Tickle::Git.new()
+      revision = source_control.latest_revision
+      source_control.update(revision)
     end
 
     def start_test

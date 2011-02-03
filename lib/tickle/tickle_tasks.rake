@@ -1,18 +1,3 @@
-# Yanked from Rails
-desc 'Run all unit, functional and integration tests'
-task :tickle, :count do |t, args|
-  errors = %w(tickle:units tickle:functionals).collect do |task|
-    begin
-      Rake::Task[task].invoke(args[:count])
-      nil
-    rescue => e
-      puts e
-      puts e.backtrace
-      task
-    end
-  end.compact
-  abort "Errors running #{errors.to_sentence}!" if errors.any?
-end
 
 namespace :tickle do
   [:unit, :functional].each do |t|
@@ -27,6 +12,30 @@ namespace :tickle do
       Tickle.run_tests type, size
     end
   end
+  
+  desc "Request server to run test"
+  task :build do
+    Tickle::TestUnit.new().add_to_redis
+    Tickle::CucumberRunner.new().add_to_redis
+    EM.run {
+      Tickle::Requestor.make_request
+    }
+  end
+
+  desc "Start server"
+  task :start_server do
+    EM.run {
+      EM.start_server(Tickle::Config.ip,Tickle::Config.port,Tickle::Server)
+    }
+  end
+
+  desc "Start Client"
+  task :start_client do
+    EM.run {
+      EM.connect(Tickle::Config.ip,Tickle::Config.port,Tickle::Worker)
+    }
+  end
+
   
   desc "Run redis tests"
   task :redis_test, :count do |t,args|
