@@ -6,7 +6,7 @@ module Tickle
       n.times do |index|
         pids << Process.fork do
           prepare_databse(index) unless try_migration_first(index)
-          r = Redis.new()
+          r = Redis.new(Tickle::Config.redis_ip,Tickle::Config.redis_port)
           while (filename = r.rpop('cucumber'))
             args = %w(--format progress) + Array(filename)
             failure = Cucumber::Cli::Main.execute(args)
@@ -22,7 +22,7 @@ module Tickle
 
     def add_to_redis
       feature_files = Dir["#{Rails.root}/features/**/*.feature"]
-      redis = Redis.new()
+      redis = Redis.new(Tickle::Config.redis_ip,Tickle::Config.redis_port)
       redis.del 'cucumber'
       feature_files.each { |x| redis.rpush('cucumber', x) }
     end
