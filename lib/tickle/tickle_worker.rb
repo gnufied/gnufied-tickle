@@ -17,7 +17,7 @@ module Tickle
     end
 
     def start_test
-      EM.popen("rake tickle:test", TestRunner) do |process|
+      EM.popen("rake tickle:test RAILS_ENV=test", TestRunner) do |process|
         process.worker = self
       end
     end
