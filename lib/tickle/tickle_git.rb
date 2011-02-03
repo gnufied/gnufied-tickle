@@ -16,6 +16,8 @@ module Tickle
       FileUtils.cd(Rails.root) do
         system("git reset --hard HEAD")
         system("git fetch & git rebase origin/#{current_branch}")
+        system("git submodule init")
+        system("git submodule update")
       end
     end
   end
