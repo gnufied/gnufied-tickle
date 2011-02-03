@@ -8,13 +8,14 @@ module Tickle
     @@status_reports = []
     
     def receive_object(ruby_object)
-      puts "Received object #{ruby_object.inspect}"
+
       case ruby_object
       when StartBuild
         start_build
       when BuildOutput
         send_to_requester(ruby_object)
       when BuildStatus
+         puts "Received object #{ruby_object.inspect}"
         collect_status_response(ruby_object)
       when WorkerConnected
         @@workers[self.signature] = self
@@ -24,8 +25,10 @@ module Tickle
     end
 
     def collect_status_response(ruby_object)
+
       @@status_reports << ruby_object
       @@status_count -= 1
+      puts "Status count is #{@@status_count}"
       if(@@status_count == 0)
         error_status = @@status_reports.any? {|x| x.exit_status != 0 }
         @@status_reports = []

@@ -4,7 +4,7 @@ module Tickle
     def receive_object(ruby_object)
       case ruby_object
       when StartBuild
-        update_code()
+        update_code
       when StartTest
         start_test
       when StartCucumber
@@ -23,9 +23,8 @@ module Tickle
     end
 
     def update_code
-      source_control = Tickle::Git.new(:branch => "master")
-      revision = source_control.latest_revision
-      source_control.update(revision)
+      source_control = Tickle::Git.new()
+      source_control.update()
     end
 
     def start_test
@@ -49,6 +48,7 @@ module Tickle
     end
 
     def unbind
+      puts "Sending the status thingy"
       worker.send_object(BuildStatus.new(get_status.exitstatus))
     end
   end
