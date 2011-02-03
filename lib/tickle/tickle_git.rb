@@ -3,9 +3,7 @@ require "fileutils"
 module Tickle
 
   class Git
-    attr_accessor :repository
-    attr_accessor :path
-
+    attr_accessor :status
     def current_branch
       cmd_output = `git symbolic-ref HEAD`
       branch_name = cmd_output.strip.split("/")[-1]
@@ -14,10 +12,7 @@ module Tickle
 
     def update
       FileUtils.cd(Rails.root) do
-        system("git reset --hard HEAD")
-        system("git fetch & git rebase origin/#{current_branch}")
-        system("git submodule init")
-        system("git submodule update")
+        @status = system("git reset --hard HEAD & git fetch & git rebase origin/#{current_branch} & git submodule init & git submodule update")
       end
     end
   end
