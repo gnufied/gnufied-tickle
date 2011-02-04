@@ -18,7 +18,10 @@ module Tickle
           if(feature_files)
             local_pids << Process.fork do
               prepare_databse(index) unless try_migration_first(index)
-              args = %w(--format progress) + feature_files.split(',')
+              full_feature_path = feature_files.split(',').map do |fl|
+                Rails.root.to_s + fl
+              end
+              args = %w(--format progress) + full_feature_path
               failure = Cucumber::Cli::Main.execute(args)
               raise "Cucumber failed" if failure
             end
@@ -47,7 +50,10 @@ module Tickle
     end
 
     def add_to_redis(worker_count)
-      feature_files = Dir["#{Rails.root}/features/**/*.feature"].sort.in_groups(worker_count, false)
+      feature_files = Dir["#{Rails.root}/features/**/*.feature"].map do |fl|
+        fl.gsub(/#{Rails.root}/,'')
+      end.sort.in_groups(worker_count, false)
+
       redis = Redis.new(:host => Tickle::Config.redis_ip,:port => Tickle::Config.redis_port)
       redis.del 'cucumber'
       feature_files.each { |x| redis.rpush('cucumber', x.join(',')) }

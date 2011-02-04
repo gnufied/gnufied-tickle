@@ -11,7 +11,10 @@ module Tickle
           prepare_databse(index) unless try_migration_first(index)
           r = Redis.new(:host => Tickle::Config.redis_ip,:port => Tickle::Config.redis_port)
           while (filename = r.rpop('tests'))
-            load(filename) unless filename =~ /^-/
+            unless filename =~ /^-/
+              full_filename = Rails.root.to_s + filename
+              load(full_filename) 
+            end
           end
         end
       end
@@ -22,7 +25,10 @@ module Tickle
     end
 
     def add_to_redis
-      test_files = Dir["#{Rails.root}/test/unit/**/**_test.rb"] + Dir["#{Rails.root}/test/functional/**/**_test.rb"]
+      test_files = (Dir["#{Rails.root}/test/unit/**/**_test.rb"] + Dir["#{Rails.root}/test/functional/**/**_test.rb"]).map do |fl|
+        fl.gsub(/#{Rails.root}/,'')
+      end
+
       redis = Redis.new(:host => Tickle::Config.redis_ip,:port => Tickle::Config.redis_port)
       redis.del 'tests'
       test_files.each { |x| redis.rpush('tests', x) }
