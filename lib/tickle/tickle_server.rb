@@ -4,18 +4,9 @@ module Tickle
     @@workers = {}
     @@requester = {}
 
-    @@unit_status_count = 0
-    @@unit_status_reports = []
-
-    @@cucumber_status_count = 0
-    @@cucumber_status_reports = []
-
     @@status_count = 0
     @@status_reports = []
 
-    @@git_status_count = 0
-    @@git_status_reports = []
-    
     def receive_object(ruby_object)
       case ruby_object
       when StartBuild
