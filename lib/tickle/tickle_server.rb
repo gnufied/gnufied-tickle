@@ -9,8 +9,6 @@ module Tickle
 
     def receive_object(ruby_object)
       case ruby_object
-      when StartBuild
-        check_for_workers && start_build
       when BuildOutput
         send_to_requester(ruby_object)
       when BuildStatus
@@ -20,15 +18,30 @@ module Tickle
         @@workers[self.signature] = self
       when BuildRequester
         @@requester[self.signature] = self
+        check_for_workers && add_tests_to_redis && start_build
       end
     end
 
     def check_for_workers
       return true unless @@workers.empty?
-
-      send_to_requester(BuildOutput.new("No worker found running"))
-      send_to_requester(BuildStatus.new(1))
+      send_error_to_requester("No worker found running")
       false
+    end
+
+    def send_error_to_requester(message)
+      send_to_requester(BuildOutput.new(message))
+      send_to_requester(BuildStatus.new(1))
+    end
+
+    def add_tests_to_redis
+      begin
+        TestUnit.new().add_to_redis()
+        Tickle::CucumberRunner.new().add_to_redis(@@workers.size * 2)
+        true
+      rescue
+        send_error_to_requester("Error adding files to redis")
+        false
+      end
     end
 
     def collect_status_response(ruby_object)

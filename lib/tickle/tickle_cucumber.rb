@@ -4,26 +4,39 @@ module Tickle
     def run(n = 2)
       redirect_stdout()
       load_environment('cucumber')
-      pids = []
-      n.times do |index|
-        pids << Process.fork do
-          prepare_databse(index) unless try_migration_first(index)
-          r = Redis.new(:host => Tickle::Config.redis_ip,:port => Tickle::Config.redis_port)
-          runtime = Cucumber::Runtime.new
-          runtime.load_programming_language('rb')
+      all_status = []
 
-          while (filename = r.rpop('cucumber'))
-            puts "********** Running file #{filename}"
-            args = %w(--format progress) + feature_files(Array(filename))
-            failure = Cucumber::Cli::Main.new(args.flatten.compact).execute!(runtime)
-            #raise "Cucumber failed" if failure
+      r = Redis.new(:host => Tickle::Config.redis_ip,:port => Tickle::Config.redis_port)
+
+      redis_has_files = true
+
+      loop do
+        local_pids = []
+        
+        n.times do
+          feature_files = r.rpop('cucumber')
+          
+          if(feature_files)
+            local_pids << Process.fork do
+              prepare_databse(index) unless try_migration_first(index)
+              args = %w(--format progress) + feature_files
+              failure = Cucumber::Cli::Main.execute(args)
+              raise "Cucumber failed" if failure
+            end
+          else
+            redis_has_files = false
+            break
           end
-        end
-      end
+        end #end of n#times
 
-      Signal.trap 'SIGINT', lambda { pids.each { |p| Process.kill("KILL", p) }; exit 1 }
-      errors = Process.waitall.map { |pid, status| status.exitstatus }
-      raise "Error running test" if (errors.any? { |x| x != 0 })
+        Signal.trap 'SIGINT', lambda { local_pids.each { |p| Process.kill("KILL", p) }; exit 1 }
+        
+        all_status += Process.waitall.map { |pid, status| status.exitstatus }
+        
+        break unless redis_has_files
+      end # end of loop
+      
+      raise "Error running cucumber tests" if (all_status.any? { |x| x != 0 })
     end
 
     def feature_files(files)
@@ -34,8 +47,8 @@ module Tickle
       list.map{|string| string.gsub(' ', '\ ')}
     end
 
-    def add_to_redis
-      feature_files = Dir["#{Rails.root}/features/**/*.feature"]
+    def add_to_redis(worker_count)
+      feature_files = Dir["#{Rails.root}/features/**/*.feature"].sort.in_groups(n, false)
       redis = Redis.new(:host => Tickle::Config.redis_ip,:port => Tickle::Config.redis_port)
       redis.del 'cucumber'
       feature_files.each { |x| redis.rpush('cucumber', x) }

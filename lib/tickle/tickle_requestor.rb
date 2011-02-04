@@ -8,7 +8,6 @@ module Tickle
     def connection_completed
       @server_running = true
       send_object(BuildRequester.new())
-      send_object(StartBuild.new())
     end
 
     def receive_object(ruby_object)

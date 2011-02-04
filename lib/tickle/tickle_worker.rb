@@ -9,8 +9,6 @@ module Tickle
         update_code
       when StartTest
         start_test
-      when StartCucumber
-        start_cucumber
       end
     end
 
@@ -25,13 +23,14 @@ module Tickle
     end
 
     def update_code
-       source_control = Tickle::Git.new()
-       source_control.update()
-       if(source_control.status)
-         start_test
-       else
-         send_object(BuildStatus.new(1))
-       end
+      start_test
+#      source_control = Tickle::Git.new()
+#      source_control.update()
+#      if (source_control.status)
+#        start_test
+#      else
+#        send_object(BuildStatus.new(1))
+#      end
     end
 
     def start_test
