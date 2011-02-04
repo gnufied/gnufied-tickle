@@ -2,7 +2,7 @@ module Tickle
   class TestUnit
     include AbstractAdapter
 
-    def run(n = 2)
+    def run(n = 3)
       redirect_stdout()
       load_environment('test')
       all_status = []
@@ -13,7 +13,7 @@ module Tickle
 
       loop do
         local_pids = []
-        
+
         n.times do |index|
           test_files = r.rpop('tests')
           if(test_files)
@@ -30,15 +30,15 @@ module Tickle
         end #end of n#times
 
         Signal.trap 'SIGINT', lambda { local_pids.each { |p| Process.kill("KILL", p) }; exit 1 }
-        
+
         all_status += Process.waitall.map { |pid, status| status.exitstatus }
-        
+
         break unless redis_has_files
       end # end of loop
-      
+
       raise "Error running cucumber tests" if (all_status.any? { |x| x != 0 })
     end
-    
+
     # def run(size = 2)
     #   redirect_stdout()
     #   load_environment('test')

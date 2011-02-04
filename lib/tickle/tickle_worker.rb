@@ -31,19 +31,31 @@ module Tickle
         send_object(BuildStatus.new(1))
       end
     end
+    
+    def redis
+      Redis.new(:host => Tickle::Config.redis_ip,:port => Tickle::Config.redis_port)
+    end
 
     def start_test
-      EM.popen("rake tickle:test RAILS_ENV=test", TestRunner) do |process|
-        process.worker = self
-        process.runner_type = 'unit'
+      if(redis.llen("tests") > 0)
+        EM.popen("rake tickle:test RAILS_ENV=test", TestRunner) do |process|
+          process.worker = self
+          process.runner_type = 'unit'
+        end
+      else
+        start_cucumber(BuildStatus.new(0))
       end
     end
 
     def start_cucumber(last_status)
       @@status_reports << last_status
-      EM.popen("rake tickle:cucumber RAILS_ENV=cucumber",TestRunner) do |process|
-        process.worker = self
-        process.runner_type = 'cucumber'
+      if(redis.llen("cucumber") > 0)
+        EM.popen("rake tickle:cucumber RAILS_ENV=cucumber",TestRunner) do |process|
+          process.worker = self
+          process.runner_type = 'cucumber'
+        end
+      else
+        send_final_report(BuildStatus.new(0))
       end
     end
 

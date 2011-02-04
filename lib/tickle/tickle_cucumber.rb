@@ -1,7 +1,7 @@
 module Tickle
   class CucumberRunner
     include AbstractAdapter
-    def run(n = 2)
+    def run(n = 3)
       redirect_stdout()
       load_environment('cucumber')
       all_status = []
