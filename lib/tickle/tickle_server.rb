@@ -29,8 +29,6 @@ module Tickle
         @@workers[self.signature] = self
       when BuildRequester
         @@requester[self.signature] = self
-      when GitStatus
-        handle_source_control(ruby_object)
       end
     end
 
@@ -42,33 +40,6 @@ module Tickle
       false
     end
 
-    def handle_source_control(ruby_object)
-      @@git_status_reports << ruby_object
-      @@git_status_count -= 1
-      
-      if(ruby_object.exit_status == 0)
-        run_tests(@@workers[self.signature])
-      end
-
-      if(@@git_status_count == 0)
-        check_for_error(@@git_status_reports)
-        @@git_status_reports = []
-      end
-    end
-
-    def check_for_error(error_array)
-      error_flag = error_array.all? {|x| x.exit_status != 0}
-      if(error_flag)
-        send_to_requester(BuildStatus.new(-1))
-      end
-    end
-
-    def run_tests(worker)
-      @@status_count += 1
-      #worker.send_object(StartTest.new())
-      worker.send_object(StartCucumber.new())
-    end
-
     def collect_status_response(ruby_object)
       @@status_reports << ruby_object
       @@status_count -= 1
@@ -77,7 +48,7 @@ module Tickle
         error_status = @@status_reports.any? {|x| x.exit_status != 0 }
         @@status_reports = []
         if(error_status)
-          send_to_requester(BuildStatus.new(-1))
+          send_to_requester(BuildStatus.new(1))
         else
           send_to_requester(BuildStatus.new(0))
         end
@@ -91,7 +62,7 @@ module Tickle
 
     def start_build
       @@workers.each do |key,worker|
-        @@git_status_count += 1
+        @@status_count += 1
         worker.send_object(StartBuild.new())
       end
     end

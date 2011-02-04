@@ -9,6 +9,5 @@ module Tickle
   BuildOutput = Struct.new(:data)
   WorkerConnected = Struct.new(:name)
   BuildStatus = Struct.new(:exit_status)
-  GitStatus = Struct.new(:exit_status)
 end
 
