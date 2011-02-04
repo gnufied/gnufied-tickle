@@ -35,7 +35,7 @@ module Tickle
 
     def add_tests_to_redis
       begin
-        TestUnit.new().add_to_redis()
+        TestUnit.new().add_to_redis(@@workers.size * 2)
         Tickle::CucumberRunner.new().add_to_redis(@@workers.size * 2)
         true
       rescue
