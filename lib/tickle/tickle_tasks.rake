@@ -15,8 +15,8 @@ namespace :tickle do
   
   desc "Request server to run test"
   task :build => :environment do
-    Tickle::TestUnit.new().add_to_redis
-    Tickle::CucumberRunner.new().add_to_redis
+    # Tickle::TestUnit.new().add_to_redis
+    # Tickle::CucumberRunner.new().add_to_redis
     EM.run {
       Tickle::Requestor.make_request
     }

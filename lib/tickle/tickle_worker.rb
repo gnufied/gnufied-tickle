@@ -23,14 +23,13 @@ module Tickle
     end
 
     def update_code
-      start_test
-#      source_control = Tickle::Git.new()
-#      source_control.update()
-#      if (source_control.status)
-#        start_test
-#      else
-#        send_object(BuildStatus.new(1))
-#      end
+      source_control = Tickle::Git.new()
+      source_control.update()
+      if (source_control.status)
+        start_test
+      else
+        send_object(BuildStatus.new(1))
+      end
     end
 
     def start_test
@@ -50,6 +49,7 @@ module Tickle
 
     def send_final_report(last_status)
       @@status_reports << last_status
+      p @@status_reports
       error_flag = @@status_reports.any? {|x| x.exit_status != 0}
       
       if(error_flag)

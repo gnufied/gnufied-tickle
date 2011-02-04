@@ -39,6 +39,8 @@ module Tickle
         Tickle::CucumberRunner.new().add_to_redis(@@workers.size * 2)
         true
       rescue
+        puts $!.message
+        puts $!.backtrace
         send_error_to_requester("Error adding files to redis")
         false
       end
