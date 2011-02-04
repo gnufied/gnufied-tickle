@@ -9,10 +9,14 @@ module Tickle
         pids << Process.fork do
           prepare_databse(index) unless try_migration_first(index)
           r = Redis.new(:host => Tickle::Config.redis_ip,:port => Tickle::Config.redis_port)
+          runtime = Cucumber::Runtime.new
+          runtime.load_programming_language('rb')
+
           while (filename = r.rpop('cucumber'))
-            args = %w(--format progress) + Array(filename)
-            failure = Cucumber::Cli::Main.execute(args)
-            raise "Cucumber failed" if failure
+            puts "********** Running file #{filename}"
+            args = %w(--format progress) + feature_files(Array(filename))
+            failure = Cucumber::Cli::Main.new(args.flatten.compact).execute!(runtime)
+            #raise "Cucumber failed" if failure
           end
         end
       end
@@ -20,6 +24,14 @@ module Tickle
       Signal.trap 'SIGINT', lambda { pids.each { |p| Process.kill("KILL", p) }; exit 1 }
       errors = Process.waitall.map { |pid, status| status.exitstatus }
       raise "Error running test" if (errors.any? { |x| x != 0 })
+    end
+
+    def feature_files(files)
+      make_command_line_safe(FileList[ files || [] ])
+    end
+
+    def make_command_line_safe(list)
+      list.map{|string| string.gsub(' ', '\ ')}
     end
 
     def add_to_redis

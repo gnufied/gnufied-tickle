@@ -6,6 +6,7 @@ module Tickle
     end
 
     def connection_completed
+      @server_running = true
       send_object(BuildRequester.new())
       send_object(StartBuild.new())
     end
@@ -19,7 +20,17 @@ module Tickle
       end
     end
 
+    def unbind
+      unless @server_running
+        puts "Error running server"
+        EM.stop()
+      else
+        EM.stop()
+      end
+    end
+
     def stop_build(ruby_object)
+      puts
       if(ruby_object.exit_status == 0)
         puts "Successfully ran all tests"
         EM.stop()

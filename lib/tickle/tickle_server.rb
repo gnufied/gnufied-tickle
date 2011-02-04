@@ -4,6 +4,12 @@ module Tickle
     @@workers = {}
     @@requester = {}
 
+    @@unit_status_count = 0
+    @@unit_status_reports = []
+
+    @@cucumber_status_count = 0
+    @@cucumber_status_reports = []
+
     @@status_count = 0
     @@status_reports = []
 
@@ -13,7 +19,7 @@ module Tickle
     def receive_object(ruby_object)
       case ruby_object
       when StartBuild
-        start_build
+        check_for_workers && start_build
       when BuildOutput
         send_to_requester(ruby_object)
       when BuildStatus
@@ -26,6 +32,14 @@ module Tickle
       when GitStatus
         handle_source_control(ruby_object)
       end
+    end
+
+    def check_for_workers
+      return true unless @@workers.empty?
+
+      send_to_requester(BuildOutput.new("No worker found running"))
+      send_to_requester(BuildStatus.new(1))
+      false
     end
 
     def handle_source_control(ruby_object)
@@ -50,8 +64,8 @@ module Tickle
     end
 
     def run_tests(worker)
-      @@status_count += 2
-      worker.send_object(StartTest.new())
+      @@status_count += 1
+      #worker.send_object(StartTest.new())
       worker.send_object(StartCucumber.new())
     end
 
